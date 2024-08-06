@@ -15,6 +15,10 @@ struct AVLTreeNode{
 struct AVLTree{
     AVLTreeNodePtr root;
 };
+int getHeight(AVLTreeNodePtr pNode);
+AVLTreePtr createAVLTree();
+AVLTreeNodePtr createNode(int value,AVLTreeNodePtr lChild, AVLTreeNodePtr rChild);
+void insertAVL(AVLTreeNodePtr* pNodePtr,int value);
 
 
 

@@ -43,9 +43,8 @@ void insertAVL(AVLTreeNodePtr* pNodePtr,int value){
     }
     //if imbalanced do rotations
     if(pNode->balanceFactor>1 || pNode->balanceFactor<-1){
-
+        balanceRotations(pNodePtr);
     }
-    
 }
 
 void updateBalanceFactor(AVLTreeNodePtr pNode){
@@ -58,12 +57,54 @@ void updateBalanceFactor(AVLTreeNodePtr pNode){
 void balanceRotations(AVLTreeNodePtr* pNodePtr){
     AVLTreeNodePtr pNode = *pNodePtr;
     if(pNode->balanceFactor>1){
-        //left imbalance
+        //check the bf of the left child
+        updateBalanceFactor(pNode->LChild);
+        if(pNode->LChild->balanceFactor == -1){
+            //LR case
+            leftRotate(&(pNode->LChild));
+            rightRotate(pNodePtr);
+        }else{
+            //LL rotation
+            rightRotate(pNodePtr);
 
-    }else
-    //right imbalance
+        }
+
+    }else{ //balancefactor is
+    //check the bf of the right
+    updateBalanceFactor(pNode->RChild);
+    if(pNode->RChild==1){
+        //RL rotation
+        rightRotate(&(pNode->LChild));
+        leftRotate(pNodePtr);
+    }
+    else{
+        //RR rotation
+        leftRotate(pNodePtr);
+    }
+
+    }
+
+
 
 
 }
 
-void 
+void leftRotate(AVLTreeNodePtr* pNodePtr){
+    AVLTreeNodePtr pNode = *pNodePtr;
+    AVLTreeNodePtr pNodeC = pNode;
+    AVLTreeNodePtr pNodeA = pNodeC->RChild;
+    AVLTreeNodePtr pNodeB = pNodeA->LChild;
+    pNodeA->LChild = pNodeC;
+    pNodeC->RChild = pNodeB;
+    *pNodePtr = pNodeA;
+}
+
+void rightRotate(AVLTreeNodePtr* pNodePtr){
+    AVLTreeNodePtr pNode = *pNodePtr;
+    AVLTreeNodePtr pNodeC = pNode;
+    AVLTreeNodePtr pNodeA = pNodeC->LChild;
+    AVLTreeNodePtr pNodeB = pNodeA->RChild;
+    pNodeA->RChild = pNodeC;
+    pNodeC->LChild = pNodeB;
+}
+

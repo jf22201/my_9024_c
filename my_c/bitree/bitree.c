@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 int getHeight(AVLTreeNodePtr pNode){
     if(!pNode){
         return 0;
