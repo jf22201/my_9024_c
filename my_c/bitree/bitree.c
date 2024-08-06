@@ -1,123 +1,110 @@
+#include "avl_tree.h"
 #include <stdio.h>
-#include "bitree.h"
 #include <stdlib.h>
 
-struct BiTree* createBiTree(){
-    struct BiTree* pTree = (struct BiTree*) malloc(sizeof(struct BiTree));
-    
+int getHeight(AVLTreeNodePtr pNode){
+    if(!pNode){
+        return 0;
+    }
+    else{
+        return 1+max(getHeight(pNode->LChild),getHeight(pNode->RChild));
+    }
 }
 
-void insertBST(struct BiTreeNode** root,int value){
-    struct BiTreeNode* newNode = createNode(value,NULL,NULL);
-    struct BiTreeNode* pNode = *root;
+AVLTreePtr createAVLTree(){
+    return (AVLTreePtr)(sizeof(struct AVLTree));
+}
+
+AVLTreeNodePtr createNode(int value,AVLTreeNodePtr lChild, AVLTreeNodePtr rChild){
+    AVLTreeNodePtr pNode = (AVLTreeNodePtr) malloc(sizeof(struct BiTreeNode));
+    pNode->value = value;
+    pNode->LChild = lChild;
+    pNode->RChild = rChild;
+    return pNode;
+}
+
+
+void insertAVL(AVLTreeNodePtr* pNodePtr,int value){
+    AVLTreeNodePtr newNode = createNode(value,NULL,NULL);
+    AVLTreeNodePtr pNode = *pNodePtr;
     if(!pNode){
-        *root = newNode;
+        *pNodePtr = newNode;
     }else{
         if(value<pNode->value){
-            insertBST(&(pNode->LChild),value);
+            insertAVL(&(pNode->LChild),value);
+            updateBalanceFactor(pNode);
         }else if(value>pNode->value){
-            insertBST(&(pNode->RChild),value);
+            insertAVL(&(pNode->RChild),value);
+            updateBalanceFactor(pNode);
         }
         else{
             return;
         }
     }
-    
+    //if imbalanced do rotations
+    if(pNode->balanceFactor>1 || pNode->balanceFactor<-1){
+        balanceRotations(pNodePtr);
+    }
 }
 
-struct BiTreeNode* searchBST(struct BiTreeNode* root, int value){
-    if(value>root->value){
-        if(!root->LChild){
-            return NULL;
+void updateBalanceFactor(AVLTreeNodePtr pNode){
+    int lHeight = getHeight(pNode->LChild);
+    int rHeight = getHeight(pNode->RChild);
+    int bfactor = lHeight-rHeight;
+    pNode->balanceFactor = bfactor;
+}
+
+void balanceRotations(AVLTreeNodePtr* pNodePtr){
+    AVLTreeNodePtr pNode = *pNodePtr;
+    if(pNode->balanceFactor>1){
+        //check the bf of the left child
+        updateBalanceFactor(pNode->LChild);
+        if(pNode->LChild->balanceFactor == -1){
+            //LR case
+            leftRotate(&(pNode->LChild));
+            rightRotate(pNodePtr);
+        }else{
+            //LL rotation
+            rightRotate(pNodePtr);
+
         }
-        searchBST(root->LChild,value);
-    }else if(value<root->value){
-        if(!root->RChild){
-            return NULL;
-        }
-        searchBST(root->RChild,value);
+
+    }else{ //balancefactor is
+    //check the bf of the right
+    updateBalanceFactor(pNode->RChild);
+    if(pNode->RChild==1){
+        //RL rotation
+        rightRotate(&(pNode->LChild));
+        leftRotate(pNodePtr);
     }
     else{
-        struct BiTreeNode* root;
-    }
-}
-
-int deleteBST(struct BiTreeNode** pNodePtr,int value){
-    struct BiTreeNode* pNode = *pNodePtr;
-    if(pNode){
-        //check that pNode exists
-        if(value< pNode->value){
-            return deleteBST(&(pNode->LChild),value);
-        }else if(value>pNode->value){
-            return deleteBST(&(pNode->RChild),value);
-        }
-        if(pNode->LChild == NULL){
-            //handles no children or RChild only
-            struct BiTreeNode* tmp = pNode->RChild;
-            free(pNode);
-            *pNodePtr = tmp;
-        }else if(pNode->RChild == NULL){
-            struct BiTreeNode* tmp = pNode->LChild;
-            free(pNode);
-            *pNodePtr = tmp;
-        }else{
-            //both are not null
-            struct BiTreeNode* minNode = getMinValueNode(pNode->RChild);
-            int tmp_val = pNode->value;
-            pNode->value = minNode->value;
-            minNode->value = tmp_val;
-            return deleteBST(&(pNode->RChild),value);
-
-        }
+        //RR rotation
+        leftRotate(pNodePtr);
     }
 
-}
-
-struct BiTreeNode* getMinValueNode(struct BiTreeNode* pNode){
-    while(pNode->LChild){
-        pNode = pNode->LChild;
     }
-    return pNode;
-}
-
-void insertBiTree(struct BiTree *pTree,int value){
-    if(!pTree->root){
-       struct BiTreeNode* pNode = createNode(value,NULL,NULL);
-        pTree->root = pNode;
-    }
-    
-}
-
-struct BiTreeNode* createNode(int value,struct BiTreeNode* lChild, struct BiTreeNode* rChild){
-struct BiTreeNode* pNode = (struct BiTreeNode*) malloc(sizeof(struct BiTreeNode));
-pNode->value = value;
-pNode->LChild = lChild;
-pNode->RChild = rChild;
-return pNode;
-}
-
-void preorderTrav(struct BiTreeNode *pNode){
-if(pNode){
-printf("visiting %d \n",pNode->value);
-preorderTrav(pNode->LChild);
-preorderTrav(pNode->RChild);
-}
-}
 
 
-void postorderTrav(struct BiTreeNode *pNode){
-    if(pNode){
 
-postorderTrav(pNode->LChild);
-postorderTrav(pNode->RChild);
-printf("visiting %d \n",pNode->value);
-}
+
 }
 
-void inorderTrav(struct BiTreeNode *pNode){
-if(pNode){
-    inorderTrav(pNode->LChild);
-    printf("visiting %d \n",pNode->value);
-    inorderTrav(pNode->RChild);
+void leftRotate(AVLTreeNodePtr* pNodePtr){
+    AVLTreeNodePtr pNode = *pNodePtr;
+    AVLTreeNodePtr pNodeC = pNode;
+    AVLTreeNodePtr pNodeA = pNodeC->RChild;
+    AVLTreeNodePtr pNodeB = pNodeA->LChild;
+    pNodeA->LChild = pNodeC;
+    pNodeC->RChild = pNodeB;
+    *pNodePtr = pNodeA;
 }
+
+void rightRotate(AVLTreeNodePtr* pNodePtr){
+    AVLTreeNodePtr pNode = *pNodePtr;
+    AVLTreeNodePtr pNodeC = pNode;
+    AVLTreeNodePtr pNodeA = pNodeC->LChild;
+    AVLTreeNodePtr pNodeB = pNodeA->RChild;
+    pNodeA->RChild = pNodeC;
+    pNodeC->LChild = pNodeB;
 }
+
